@@ -43,6 +43,7 @@ import android.provider.MediaStore;
 import android.text.Layout;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
@@ -155,6 +156,11 @@ public class MainActivity extends AppCompatActivity {
     // toast are stood up with a 270° rotation. Used to pixel-snap that rotation
     // (snapRotatedTextView) so the toast's 1dp hairline border stays crisp.
     private boolean mIsLandscape;
+    // Mirror of PREF_TOOLBAR_REVERSED — loaded in onCreate, toggled by the
+    // horizontal-fling listener on mBottomBar. applyToolbarReversal reads it
+    // to decide whether to swap the function-button group and the "more"
+    // button to the opposite edges of the portrait bottom bar.
+    private boolean mIsToolbarReversed;
 
     private AspectRatioSurfaceView mSurfaceView;
     private View mFocusContainer;
@@ -241,6 +247,12 @@ public class MainActivity extends AppCompatActivity {
     static final String PREFS_NAME = "usb_cam_viewer_prefs";
     private static final String PREF_MODE_ORDER = "mode_menu_order";
     private static final String PREF_GRID_ENABLED = "grid_enabled";
+    // When true the portrait bottom toolbar is mirrored: the shutter/action
+    // button and the function-button group sit at the right edge, the "more"
+    // button at the left — a left-handed-friendly arrangement toggled by a
+    // horizontal swipe-fling on the bottom bar. Stored persistently so the
+    // preference survives app restarts.
+    private static final String PREF_TOOLBAR_REVERSED = "toolbar_reversed";
     // Auto Run settings (configured in AutoRunActivity). Keyword/whitelist values
     // are stored as the raw multi-line text the user typed; both MainActivity and
     // AutoRunActivity split them the same way (one entry per non-blank line).
@@ -560,6 +572,9 @@ public class MainActivity extends AppCompatActivity {
         mTopUiOverlay = findViewById(R.id.top_ui_overlay);
         mBottomBar = findViewById(R.id.bottom_bar);
         mLeftFunctions = findViewById(R.id.left_functions);
+        // Load the toolbar-reversed preference before applyOrientationLayout
+        // so the first layout pass (below) already reflects the saved state.
+        mIsToolbarReversed = getPrefs().getBoolean(PREF_TOOLBAR_REVERSED, false);
         // Capture the inflated (portrait) constraints verbatim so returning to
         // portrait restores the XML layout exactly; only landscape is rebuilt.
         mPortraitRootCs = new ConstraintSet();
@@ -628,6 +643,10 @@ public class MainActivity extends AppCompatActivity {
         // the current orientation (rebuilds to side strips if we launched in
         // landscape; a no-op restore in portrait).
         applyOrientationLayout(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE);
+        // Horizontal-swipe fling on the bottom bar toggles the toolbar mirror
+        // (shutter left <-> right) in portrait. Installed once here; the
+        // listener checks mIsLandscape so it's a no-op in landscape.
+        installToolbarFlingListener();
 
         mLastPicture.setOnClickListener(v -> {
             if (mPendingPhotoSaves > 0) {
@@ -774,6 +793,10 @@ public class MainActivity extends AppCompatActivity {
             // stopRecording); the toast has no such flag, so use the snapshot.
             mTvRecordingTimer.setVisibility(mIsRecording ? VISIBLE : GONE);
             mTvCustomToast.setVisibility(toastVis);
+            // The ConstraintSet restore above resets the bottom-bar anchors to
+            // their XML defaults, so re-apply the toolbar mirror if the user
+            // had it reversed. No-op when mIsToolbarReversed is false.
+            applyToolbarReversal();
             return;
         }
 
@@ -951,6 +974,132 @@ public class MainActivity extends AppCompatActivity {
         float boxTop = v.getTop() + (h - w) / 2f;
         v.setTranslationX(Math.round(boxLeft) - boxLeft);
         v.setTranslationY(Math.round(boxTop) - boxTop);
+    }
+
+    // --- Toolbar reversal (portrait) ----------------------------------------
+
+    // Horizontal-fling detector on the bottom bar. A left or right swipe
+    // (GestureDetector standard fling: velocity > threshold, mostly-horizontal
+    // travel) toggles mIsToolbarReversed and re-arranges the bottom bar so the
+    // shutter/action button moves to the opposite edge. The detector is fed
+    // from Activity.dispatchTouchEvent (not from a setOnTouchListener on
+    // mBottomBar) because ViewGroup only forwards events to its own touch
+    // listener when no child consumes them — a tap on a button would never
+    // reach the listener, breaking fling detection when the swipe starts on a
+    // button. dispatchTouchEvent sees every event regardless of which child
+    // consumes it, so the GestureDetector gets a complete DOWN→MOVE→UP stream.
+    // We only react in portrait; landscape already moves the bar to a side
+    // strip where a horizontal swipe is not a natural gesture.
+    private GestureDetector mToolbarFlingDetector;
+
+    private void installToolbarFlingListener() {
+        mToolbarFlingDetector = new GestureDetector(this,
+                new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2,
+                                    float velocityX, float velocityY) {
+                if (mIsLandscape) return false;
+                // Require a decisively horizontal, reasonably fast swipe
+                // so an accidental vertical scroll or a slow drag never
+                // triggers the mirror.
+                if (Math.abs(velocityX) < 600) return false;
+                if (Math.abs(velocityX) < Math.abs(velocityY)) return false;
+                mIsToolbarReversed = !mIsToolbarReversed;
+                getPrefs().edit()
+                        .putBoolean(PREF_TOOLBAR_REVERSED, mIsToolbarReversed)
+                        .apply();
+                applyToolbarReversal();
+                return true;
+            }
+        });
+    }
+
+    // Swaps the bottom-bar function group (mLeftFunctions, which contains the
+    // shutter + aspect/quality/stabilization/countdown) with the "more" button,
+    // and mirrors the mode/more menu sidebars to the opposite side so they
+    // still pop out beside their anchor buttons. No-op in landscape (the
+    // landscape layout already rebuilds everything in applyOrientationLayout,
+    // and the side strips don't have a meaningful "left/right" mirror).
+    //
+    // This method is idempotent: it reads mIsToolbarReversed as the source of
+    // truth and arranges the views to match, so it's safe to call after every
+    // applyOrientationLayout(landscape=false) — the portrait ConstraintSet
+    // restore resets the horizontal anchors to their XML defaults, then this
+    // re-applies the mirror if needed. The LinearLayout children are re-ordered
+    // to a known order (XML order or its reverse) rather than toggled, so
+    // calling it twice with the same mIsToolbarReversed value is a no-op.
+    private void applyToolbarReversal() {
+        if (mIsLandscape) return;
+        if (mLeftFunctions == null || mContainerMore == null) return;
+
+        // 1. Arrange the function-group children to match the flag. We use the
+        //    XML-declared order as the canonical "normal" order and reverse it
+        //    when the flag is set. Re-adding views preserves their listeners
+        //    and state because we're moving them within the same parent.
+        int n = mLeftFunctions.getChildCount();
+        // Read the current first child to detect whether we're already in the
+        // desired arrangement — avoids a redundant remove/add cycle (which
+        // would briefly orphan focus and trigger an unnecessary layout pass).
+        View firstChild = n > 0 ? mLeftFunctions.getChildAt(0) : null;
+        // The XML order is: qr, video_quality, aspect_ratio, stabilization,
+        // countdown. When reversed, the first child should be countdown.
+        boolean currentlyReversed = n > 0
+                && firstChild != null
+                && firstChild.getId() == R.id.container_countdown;
+        if (mIsToolbarReversed != currentlyReversed) {
+            for (int i = n - 1; i >= 0; i--) {
+                View child = mLeftFunctions.getChildAt(i);
+                mLeftFunctions.removeViewAt(i);
+                mLeftFunctions.addView(child);
+            }
+        }
+
+        // 2. Set the horizontal anchors of the group and the "more" button
+        //    to match the flag. Both branches are explicit because this method
+        //    is called from two paths:
+        //    - applyOrientationLayout(landscape=false): ConstraintSet restore
+        //      already reset anchors to XML defaults, so the false branch is a
+        //      no-op in practice — but the true branch must override them.
+        //    - onFling (toggle): no ConstraintSet restore has run, so anchors
+        //      are still at whatever the previous state left them. The false
+        //      branch MUST actively reset them to XML defaults, otherwise
+        //      un-reversing would leave the buttons stuck on the wrong edges.
+        ConstraintLayout.LayoutParams lpFunctions =
+                (ConstraintLayout.LayoutParams) mLeftFunctions.getLayoutParams();
+        ConstraintLayout.LayoutParams lpMore =
+                (ConstraintLayout.LayoutParams) mContainerMore.getLayoutParams();
+        ConstraintLayout.LayoutParams lpMode =
+                (ConstraintLayout.LayoutParams) mModeMenuSidebar.getLayoutParams();
+        ConstraintLayout.LayoutParams lpMoreMenu =
+                (ConstraintLayout.LayoutParams) mMoreMenuSidebar.getLayoutParams();
+        if (mIsToolbarReversed) {
+            // Functions -> right edge, more -> left edge.
+            lpFunctions.startToStart = ConstraintLayout.LayoutParams.UNSET;
+            lpFunctions.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
+            lpMore.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
+            lpMore.endToEnd = ConstraintLayout.LayoutParams.UNSET;
+            // Mode menu pops from the right (above the shutter), more menu
+            // from the left (above the more button).
+            lpMode.startToStart = ConstraintLayout.LayoutParams.UNSET;
+            lpMode.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
+            lpMoreMenu.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
+            lpMoreMenu.endToEnd = ConstraintLayout.LayoutParams.UNSET;
+        } else {
+            // XML defaults: functions -> left, more -> right.
+            lpFunctions.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
+            lpFunctions.endToEnd = ConstraintLayout.LayoutParams.UNSET;
+            lpMore.startToStart = ConstraintLayout.LayoutParams.UNSET;
+            lpMore.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
+            // Mode menu at left, more menu at right.
+            lpMode.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
+            lpMode.endToEnd = ConstraintLayout.LayoutParams.UNSET;
+            lpMoreMenu.startToStart = ConstraintLayout.LayoutParams.UNSET;
+            lpMoreMenu.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
+        }
+        mLeftFunctions.setLayoutParams(lpFunctions);
+        mContainerMore.setLayoutParams(lpMore);
+        mModeMenuSidebar.setLayoutParams(lpMode);
+        mMoreMenuSidebar.setLayoutParams(lpMoreMenu);
     }
 
     @Override
@@ -1173,6 +1322,27 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
+        // Feed the toolbar-fling detector before any child consumes the event.
+        // dispatchTouchEvent sees the full DOWN→MOVE→UP stream even when a
+        // button child consumes them, so the GestureDetector can recognise a
+        // horizontal fling that starts on a button and ends in empty space.
+        if (mToolbarFlingDetector != null && !mIsLandscape && mBottomBar != null) {
+            // Only consider events that begin on the bottom bar — a fling that
+            // starts on the preview surface or top bar is for focus/exposure,
+            // not toolbar reversal.
+            if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+                int y = (int) ev.getRawY();
+                Rect barRect = new Rect();
+                mBottomBar.getGlobalVisibleRect(barRect);
+                if (barRect.contains((int) ev.getRawX(), y)) {
+                    mToolbarFlingDetector.onTouchEvent(ev);
+                }
+            } else {
+                // MOVE/UP are forwarded unconditionally; the detector ignores
+                // them unless it received a matching DOWN.
+                mToolbarFlingDetector.onTouchEvent(ev);
+            }
+        }
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
             int x = (int) ev.getRawX();
             int y = (int) ev.getRawY();
