@@ -52,7 +52,20 @@ public class EisGlProcessor implements SurfaceTexture.OnFrameAvailableListener {
     private final FloatBuffer mVerticesBuffer;
     private final FloatBuffer mTexCoordsBuffer;
 
+    // Reusable scratch array for per-surface center-crop vertex scaling — avoids
+    // allocating a new float[] every frame. See renderFrame for the crop math.
+    private final float[] mScaledVertices = new float[12];
+
     private final EisManager mEisManager;
+    // Camera-source (actual sensor) dimensions, NOT the video-quality target. The
+    // camera may run at a non-16:9 resolution (e.g. 2592×1944 4:3) even when the
+    // user selected a 16:9 tier (2560×1440 QHD), because getBestSupportedSize
+    // picks the smallest supported size ≥ target — and many UVC sensors have no
+    // exact 16:9 QHD mode. mWidth/mHeight feeds the per-surface center-crop
+    // calculation in renderFrame: inputAspect (mWidth/mHeight) vs outputAspect
+    // (each EGL surface's buffer size) determines the vertex scale. EisManager.
+    // getStabilizationMatrix receives mWidth/mHeight too but ignores them — the
+    // zoom/compensation it returns is gyro-driven, not size-driven.
     private final int mWidth;
     private final int mHeight;
 
@@ -185,10 +198,33 @@ public class EisGlProcessor implements SurfaceTexture.OnFrameAvailableListener {
     }
 
     public void addOutputSurface(Surface surface) {
+        addOutputSurface(surface, false);
+    }
+
+    /**
+     * Adds an output surface for the GL pipeline to render stabilized frames into.
+     *
+     * @param surface            the Surface to render into (preview TextureView
+     *                           Surface or MediaRecorder Surface)
+     * @param cropToAspectRatio  when true, the quad is scaled beyond the viewport
+     *                           edges so the input texture's aspect ratio is
+     *                           preserved and the GPU's NDC clipping performs a
+     *                           center-crop. This is needed for surfaces whose
+     *                           buffer aspect differs from the camera's actual
+     *                           sensor aspect — primarily the MediaRecorder
+     *                           surface, which is set to the user's 16:9 quality
+     *                           tier (e.g. 2560×1440) while the camera may be
+     *                           running at a 4:3 sensor mode (e.g. 2592×1944).
+     *                           Set false for the preview surface, whose
+     *                           AspectRatioSurfaceView.updateTransform already
+     *                           handles center-crop (so GL-level crop would
+     *                           double-crop the preview).
+     */
+    public void addOutputSurface(Surface surface, boolean cropToAspectRatio) {
         mHandler.post(() -> {
             int[] surfaceAttribs = { EGL14.EGL_NONE };
             EGLSurface eglSurface = EGL14.eglCreateWindowSurface(mEGLDisplay, mEGLConfig, surface, surfaceAttribs, 0);
-            mOutputSurfaces.add(new OutputSurface(surface, eglSurface));
+            mOutputSurfaces.add(new OutputSurface(surface, eglSurface, cropToAspectRatio));
         });
     }
 
@@ -231,6 +267,7 @@ public class EisGlProcessor implements SurfaceTexture.OnFrameAvailableListener {
 
         int[] surfW = new int[1];
         int[] surfH = new int[1];
+        float inputAspect = mHeight > 0 ? (float) mWidth / mHeight : 1.0f;
 
         for (OutputSurface os : mOutputSurfaces) {
             EGL14.eglMakeCurrent(mEGLDisplay, os.eglSurface, os.eglSurface, mEGLContext);
@@ -243,11 +280,45 @@ public class EisGlProcessor implements SurfaceTexture.OnFrameAvailableListener {
             GLES20.glViewport(0, 0, surfW[0], surfH[0]);
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
+            // Center-crop: when the camera's sensor aspect (inputAspect) doesn't
+            // match this surface's buffer aspect, the default full-viewport quad
+            // (-1..1) would stretch the texture to fill — producing a distorted
+            // frame. This happens at QHD on 4:3 sensors: the camera runs at
+            // 2592×1944 (4:3) but the MediaRecorder surface is 2560×1440 (16:9).
+            // To preserve the input aspect, scale the quad beyond the viewport
+            // edges so the GPU's NDC clipping (-1..1 after projection) crops the
+            // overflow. The dimension that's relatively larger in the input stays
+            // at scale 1.0 (fills that axis); the other axis is scaled > 1.0
+            // (overflows and gets clipped). This is equivalent to center-crop in
+            // image processing — the input fills the output, excess is cropped.
+            // The preview surface is excluded (cropToAspectRatio=false) because
+            // AspectRatioSurfaceView.updateTransform already center-crops the
+            // buffer; GL-level crop would compound the zoom (double-crop).
+            if (os.cropToAspectRatio && surfH[0] > 0) {
+                float outputAspect = (float) surfW[0] / surfH[0];
+                if (Math.abs(inputAspect - outputAspect) > 0.01f) {
+                    float scaleX = Math.max(1.0f, inputAspect / outputAspect);
+                    float scaleY = Math.max(1.0f, outputAspect / inputAspect);
+                    mScaledVertices[0]  = -scaleX; mScaledVertices[1]  = -scaleY; mScaledVertices[2]  = 0.0f;
+                    mScaledVertices[3]  =  scaleX; mScaledVertices[4]  = -scaleY; mScaledVertices[5]  = 0.0f;
+                    mScaledVertices[6]  = -scaleX; mScaledVertices[7]  =  scaleY; mScaledVertices[8]  = 0.0f;
+                    mScaledVertices[9]  =  scaleX; mScaledVertices[10] =  scaleY; mScaledVertices[11] = 0.0f;
+                    mVerticesBuffer.position(0);
+                    mVerticesBuffer.put(mScaledVertices);
+                } else {
+                    mVerticesBuffer.position(0);
+                    mVerticesBuffer.put(VERTICES);
+                }
+            } else {
+                mVerticesBuffer.position(0);
+                mVerticesBuffer.put(VERTICES);
+            }
+            mVerticesBuffer.position(0);
+
             GLES20.glUseProgram(mProgram);
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
             GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureId);
 
-            mVerticesBuffer.position(0);
             GLES20.glVertexAttribPointer(maPositionLoc, 3, GLES20.GL_FLOAT, false, 12, mVerticesBuffer);
             GLES20.glEnableVertexAttribArray(maPositionLoc);
 
@@ -305,9 +376,11 @@ public class EisGlProcessor implements SurfaceTexture.OnFrameAvailableListener {
     private static class OutputSurface {
         Surface surface;
         EGLSurface eglSurface;
-        OutputSurface(Surface s, EGLSurface es) {
+        boolean cropToAspectRatio;
+        OutputSurface(Surface s, EGLSurface es, boolean crop) {
             surface = s;
             eglSurface = es;
+            cropToAspectRatio = crop;
         }
     }
 }

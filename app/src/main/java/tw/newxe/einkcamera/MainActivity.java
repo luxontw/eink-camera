@@ -1490,21 +1490,44 @@ public class MainActivity extends AppCompatActivity {
         mPendingCamera = null;
 
         if (mCurrentMode == CameraMode.VIDEO && mIsStabilizationEnabled) {
-            int w = mSurfaceView.getTargetWidth();
-            int h = mSurfaceView.getTargetHeight();
-            if (w <= 0 || h <= 0) {
-                w = mSurfaceView.getSourceWidth();
-                h = mSurfaceView.getSourceHeight();
+            // EisGlProcessor needs the camera's *actual sensor* resolution (source),
+            // not the video-quality target. On a 4:3 sensor at QHD the camera runs
+            // at 2592×1944 while the target is 2560×1440 — EisGlProcessor uses
+            // mWidth/mHeight as the input aspect for per-surface center-crop, so
+            // it must be the real sensor size (4:3) to detect the aspect mismatch
+            // against the MediaRecorder's 16:9 surface.
+            int sourceW = mSurfaceView.getSourceWidth();
+            int sourceH = mSurfaceView.getSourceHeight();
+            if (sourceW <= 0 || sourceH <= 0) {
+                sourceW = mSurfaceView.getTargetWidth();
+                sourceH = mSurfaceView.getTargetHeight();
             }
-            
+
             if (mEisGlProcessor != null) {
                 mEisGlProcessor.release();
             }
             mEisManager.start();
-            mEisGlProcessor = new EisGlProcessor(mEisManager, w, h);
-            mEisGlProcessor.addOutputSurface(surface);
+            mEisGlProcessor = new EisGlProcessor(mEisManager, sourceW, sourceH);
+
+            // Pin the preview SurfaceTexture's buffer to the camera's source
+            // resolution. Without this the buffer defaults to the TextureView's
+            // on-screen size, and updateTransform — which undoes TextureView's
+            // default stretch using mSourceWidth/mSourceHeight — would mis-
+            // transform the EIS-rendered buffer. At source size the buffer
+            // matches what updateTransform expects, so the preview's center-crop
+            // (rotate + scale-to-fill) works exactly as in the non-EIS path.
+            SurfaceTexture st = mSurfaceView.getSurfaceTexture();
+            if (st != null) {
+                st.setDefaultBufferSize(sourceW, sourceH);
+            }
+
+            // Preview surface: cropToAspectRatio=false — let
+            // AspectRatioSurfaceView.updateTransform handle center-crop so the
+            // preview framing matches the non-EIS path. GL-level crop here would
+            // compound with the TextureView transform (double-crop / over-zoom).
+            mEisGlProcessor.addOutputSurface(surface, false);
             mEisInputSurface = mEisGlProcessor.getInputSurface();
-            
+
             camera.setPreviewDisplay(mEisInputSurface);
         } else {
             if (mEisGlProcessor != null) {
@@ -3451,7 +3474,16 @@ public class MainActivity extends AppCompatActivity {
                     // Calling startCapture(mEisInputSurface) here would make
                     // the camera write twice to the same SurfaceTexture and
                     // halve the effective frame rate per consumer.
-                    mEisGlProcessor.addOutputSurface(mMediaRecorderSurface);
+                    //
+                    // cropToAspectRatio=true: the MediaRecorder surface buffer
+                    // is set to the user's 16:9 quality tier (e.g. 2560×1440),
+                    // but the camera may be running at a 4:3 sensor mode (e.g.
+                    // 2592×1944) — EisGlProcessor center-crops the input texture
+                    // to the surface's aspect so the recorded video preserves
+                    // the correct proportions. The preview surface (added in
+                    // tryStartPendingPreview with cropToAspectRatio=false) is
+                    // handled by AspectRatioSurfaceView.updateTransform instead.
+                    mEisGlProcessor.addOutputSurface(mMediaRecorderSurface, true);
                 } else {
                     mCamera.startCapture(mMediaRecorderSurface);
                 }
