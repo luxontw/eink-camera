@@ -737,6 +737,15 @@ public class MainActivity extends AppCompatActivity {
         };
 
         if (!landscape) {
+            // Snapshot the runtime visibility of the toast BEFORE the
+            // ConstraintSet restore below resets it. tv_custom_toast is
+            // android:visibility="gone" in the XML, so mPortraitTopCs
+            // (captured at onCreate) records GONE and applyTo would clobber
+            // a toast mid-display on every landscape→portrait rotation.
+            // The timer doesn't need a snapshot — mIsRecording is its source
+            // of truth and is checked below.
+            int toastVis = mTvCustomToast.getVisibility();
+
             // Restore portrait verbatim from the captured constraints.
             mPortraitRootCs.applyTo(mRootLayout);
             mPortraitTopCs.applyTo(mTopUiOverlay);
@@ -759,6 +768,12 @@ public class MainActivity extends AppCompatActivity {
             mTvRecordingTimer.setTranslationY(0f);
             mTvCustomToast.setTranslationX(0f);
             mTvCustomToast.setTranslationY(0f);
+            // Re-apply the runtime visibility captured above so live overlays
+            // survive the rotation. The timer uses mIsRecording as the source
+            // of truth (more reliable than the snapshot, which could race with
+            // stopRecording); the toast has no such flag, so use the snapshot.
+            mTvRecordingTimer.setVisibility(mIsRecording ? VISIBLE : GONE);
+            mTvCustomToast.setVisibility(toastVis);
             return;
         }
 
