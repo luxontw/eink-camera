@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature android:name="android.hardware.usb.host" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+        tools:targetApi="31">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="fullSensor"
+            android:configChanges="orientation|screenSize|keyboardHidden">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Receive a single image shared from another app (gallery, browser, etc.)
+                 and scan it for QR codes in SCAN mode. -->
+            <intent-filter android:label="@string/scan_qr_from_image">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+
+            <!-- "Open with..." entry for image files — same QR-scan flow as SEND. -->
+            <intent-filter android:label="@string/scan_qr_from_image">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+
+            <!-- Launch (and auto-grant USB permission) the moment a matching UVC
+                 device is attached, even when the app is closed. Without this
+                 intent-filter the meta-data below is inert: detection relies
+                 solely on USBMonitor's 2s getDeviceList() poll after the user
+                 manually opens the app, which silently fails if the phone has
+                 already cut OTG power / autosuspended the idle device (the
+                 "plugged in, opened minutes later, no permission prompt" bug).
+                 The device_filter (@xml/device_filter, class 239/subclass 2)
+                 scopes this to UVC devices. -->
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" />
+            <meta-data android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+
+        </activity>
+
+        <activity
+            android:name=".AboutActivity"
+            android:exported="false"
+            android:screenOrientation="sensorPortrait"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".AutoRunActivity"
+            android:exported="false"
+            android:screenOrientation="sensorPortrait"
+            android:parentActivityName=".MainActivity" />
+    </application>
+
+</manifest>

@@ -1,0 +1,82 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+// Release signing reads keystore.properties in the repo root (gitignored;
+// storeFile/storePassword/keyAlias/keyPassword). Without the file,
+// assembleRelease still works but produces an unsigned APK.
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
+android {
+    namespace 'tw.newxe.einkcamera'
+    // required for GitLab CI/CD
+    //noinspection GrDeprecatedAPIUsage
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "tw.newxe.einkcamera"
+        minSdk 24
+        targetSdk 36
+        versionCode 100
+        versionName "1.0.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    dependenciesInfo {
+        // Disables dependency metadata when building APKs (for IzzyOnDroid/F-Droid)
+        includeInApk = false
+        // Disables dependency metadata when building Android App Bundles (for Google Play)
+        includeInBundle = false
+    }
+}
+
+dependencies {
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+    implementation libs.constraintlayout
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+    // Local rebuild of org.uvccamera:lib 0.0.13 — Maven Central's binaries have 4 KB-aligned
+    // ELF LOAD segments and Google Play rejects them (16 KB page-size requirement for
+    // targetSdk 35+, effective 2025-11-01). Rebuilt from the exact 0.0.13 tag of
+    // github.com/alexey-pelykh/UVCCamera with APP_LDFLAGS := -Wl,-z,max-page-size=16384
+    // in lib/src/main/jni/Application.mk (same as upstream PR #74, unmerged). Java/API
+    // surface is identical to the Maven artifact. Revert to the catalog dependency once
+    // upstream ships a 16 KB-aligned release (> 0.0.13).
+    implementation files('libs/uvccamera-lib-0.0.13-16k.aar')
+    implementation libs.barcode.scanning
+    implementation libs.zxing.core
+}

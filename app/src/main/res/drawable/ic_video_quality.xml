@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 影片拍攝畫質切換 / Video quality -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M4.25,6 H19.75 a1.25,1.25 0 0 1 1.25,1.25 V16.75 a1.25,1.25 0 0 1 -1.25,1.25 H4.25 a1.25,1.25 0 0 1 -1.25,-1.25 V7.25 a1.25,1.25 0 0 1 1.25,-1.25 Z"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+    <path
+        android:pathData="M6.5,9 H10.5"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="square"
+        android:strokeLineJoin="round"/>
+    <path
+        android:pathData="M6.5,12 H13.5"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="square"
+        android:strokeLineJoin="round"/>
+    <path
+        android:pathData="M6.5,15 H17.5"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="square"
+        android:strokeLineJoin="round"/>
+</vector>

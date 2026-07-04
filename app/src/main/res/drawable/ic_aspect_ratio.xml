@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 照片拍攝比例 / Aspect ratio — two paper sheets stacked (back portrait, front landscape) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Back sheet: open polyline; hidden bottom/left segments omitted so front occludes them -->
+    <path
+        android:pathData="M8,9 V3 H19 V16 H16"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+    <!-- Front sheet: closed rectangle drawn on top -->
+    <path
+        android:pathData="M3,9 H16 V20 H3 Z"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+</vector>

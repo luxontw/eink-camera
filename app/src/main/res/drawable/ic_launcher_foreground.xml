@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  E-ink Camera · Stamp · Final
+  Adaptive-icon foreground (Android 8+). 108dp viewport with content
+  mapped 1:1 from the source 1024-grid into the inner 72dp visible area
+  (Material spec). All four body corners rounded (r=50 in 1024-grid =
+  r=3.52 in 108-viewport). Three paths:
+    1. Viewfinder bump (light grey #CCCCCC), drawn first, extends down
+       into the body so the body covers its base = the layered "folded
+       flap" detail.
+    2. Body with lens cut-out (white #FFFFFF, evenOdd fill). Lens hole
+       reveals the ic_launcher_background (#0A0A0A) underneath.
+    3. Lens reflection: a soft radial glow on the top-left of the lens,
+       painted last (on top). It is *not* a solid shape — a radial
+       gradient that fades to fully transparent at its edge, so it reads
+       as a glassy sheen rather than a white blob. The fill path is the
+       same circle as the lens hole, so the glow is naturally clipped to
+       the lens and never spills onto the white body (the gradient is
+       centred up-left of the lens centre, so without this bound part of
+       it would land on the body). Needs the aapt namespace below for the
+       inline <gradient>.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54.565"
+        android:scaleX="0.8"
+        android:scaleY="0.8"
+        android:translateY="-3.5">
+        <!-- Viewfinder bump. Grey kept distinct from the #FFFFFF body (was
+             #F2F2F2, nearly invisible) so the "folded flap" detail still reads
+             when the launcher icon is shown small. -->
+        <path
+            android:fillColor="#E0E0E0"
+            android:pathData="M40.85,42.61 L44.63,35.03 Q45.42,33.47 47.18,33.47 L60.82,33.47 Q62.58,33.47 63.37,35.03 L67.15,42.61 Z" />
+        <!-- Body (rounded all four corners) with lens hole via evenOdd fill -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M29.95,40.50 L78.05,40.50 Q81.56,40.50 81.56,44.02 L81.56,72.14 Q81.56,75.66 78.05,75.66 L29.95,75.66 Q26.44,75.66 26.44,72.14 L26.44,44.02 Q26.44,40.50 29.95,40.50 Z M44.16,57.37 a9.84,9.84 0 1,0 19.68,0 a9.84,9.84 0 1,0 -19.68,0 Z" />
+        <!-- Lens reflection glow (top-left). Fill path = the lens-hole circle
+             so the glow is clipped to the lens. Radial gradient centred up-left
+             (49.5,52.8) of the lens centre (54,57.37), radius 9; alpha runs
+             0x80 -> 0x1F -> 0x00 so it fades out before the rim = soft sheen,
+             not a hard white crescent. Coords are in this group's local space
+             (same as the lens path), so the 0.8 scale applies equally. -->
+        <path
+            android:pathData="M44.16,57.37 a9.84,9.84 0 1,0 19.68,0 a9.84,9.84 0 1,0 -19.68,0 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:type="radial"
+                    android:centerX="49.5"
+                    android:centerY="52.8"
+                    android:gradientRadius="9">
+                    <item android:offset="0.0" android:color="#80FFFFFF" />
+                    <item android:offset="0.7" android:color="#1FFFFFFF" />
+                    <item android:offset="1.0" android:color="#00FFFFFF" />
+                </gradient>
+            </aapt:attr>
+        </path>
+    </group>
+</vector>

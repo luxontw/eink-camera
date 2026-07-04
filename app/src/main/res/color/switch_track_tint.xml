@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SwitchCompat track (the background bar): grey when ON, lighter grey when OFF.
+     SwitchCompat applies ~30% alpha to the track itself, so these are kept fairly
+     dark to read as the intended grey. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true" android:color="#9E9E9E" />
+    <item android:color="#BDBDBD" />
+</selector>

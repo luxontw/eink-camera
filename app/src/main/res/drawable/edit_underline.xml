@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Single black underline for the Auto Run input rows. A full-bleed black rectangle
+     with the top/left/right insets pushed off-screen so only the bottom line shows
+     beneath the text. Width + colour match the "+" glyph (ic_add): its 2-unit
+     stroke in a 24-unit viewport drawn at 16dp ≈ 1.5dp, colour #000000. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:top="-2dp"
+        android:left="-2dp"
+        android:right="-2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <stroke
+                android:width="1.5dp"
+                android:color="#000000" />
+        </shape>
+    </item>
+</layer-list>

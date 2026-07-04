@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 掃描模式 / Scan mode — top & bottom edges continuous, gaps only on left & right -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M4,9 V5 a1,1 0 0 1 1,-1 H19 a1,1 0 0 1 1,1 V9"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="square"
+        android:strokeLineJoin="round"/>
+    <path
+        android:pathData="M4,15 V19 a1,1 0 0 0 1,1 H19 a1,1 0 0 0 1,-1 V15"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="square"
+        android:strokeLineJoin="round"/>
+    <path
+        android:pathData="M7.5,12 H16.5"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="square"
+        android:strokeLineJoin="round"/>
+</vector>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- About / 關於 — info "i" inside a circle, stroke style to match the other toolbar icons -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M12,3 a9,9 0 1 0 0,18 a9,9 0 1 0 0,-18"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+    <!-- "i" tuned to classic info-icon proportions inside the r=9 circle:
+         dot ~2.0 dia centered at y=8, gap 1.5 (= stroke width), stem visually 6.5
+         (10.55..17.05 incl. square caps) -> glyph spans 6.95..17.05, dead-center on y=12
+         with equal 3.2 clearance to the ring's inner edge top and bottom.
+         Dot keeps a tiny 0.1 path length: zero-length round-cap segments don't
+         render reliably in VectorDrawable. -->
+    <path
+        android:pathData="M12,11.3 V16.3"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="square"
+        android:strokeLineJoin="round"/>
+    <path
+        android:pathData="M12,7.95 V8.05"
+        android:strokeColor="#111111"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+</vector>

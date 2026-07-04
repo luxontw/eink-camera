@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 解析度 HD / HD resolution. Letterforms: Noto Sans Black @ 6.5px (cap-height ~4.6, baseline y=14.55, centered). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Display frame -->
+    <path
+        android:pathData="M4.25,6 H19.75 a1.25,1.25 0 0 1 1.25,1.25 V16.75 a1.25,1.25 0 0 1 -1.25,1.25 H4.25 a1.25,1.25 0 0 1 -1.25,-1.25 V7.25 a1.25,1.25 0 0 1 1.25,-1.25 Z"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+    <!-- HD label -->
+    <path
+        android:pathData="M11.519 9.909L11.519 14.550L10.258 14.550L10.258 12.659L8.802 12.659L8.802 14.550L7.541 14.550L7.541 9.909L8.802 9.909L8.802 11.632L10.258 11.632L10.258 9.909L11.519 9.909ZM16.459 12.132L16.459 12.132Q16.459 12.938 16.157 13.478Q15.855 14.017 15.309 14.284Q14.763 14.550 14.022 14.550L14.022 14.550L12.520 14.550L12.520 9.909L14.126 9.909Q15.250 9.909 15.855 10.481Q16.459 11.053 16.459 12.132ZM15.159 12.178L15.159 12.178Q15.159 10.923 14.139 10.923L14.139 10.923L13.775 10.923L13.775 13.523L14.054 13.523Q14.626 13.523 14.893 13.192Q15.159 12.860 15.159 12.178Z"
+        android:fillColor="#111111"
+        android:fillType="evenOdd"/>
+</vector>

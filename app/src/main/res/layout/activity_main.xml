@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    tools:context=".MainActivity">
+
+    <tw.newxe.einkcamera.AspectRatioSurfaceView
+        android:id="@+id/camera_surface_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <!-- Backdrop for SCAN-from-shared-image mode. Shows the bitmap passed in via
+         ACTION_SEND / ACTION_VIEW so QR overlays drawn over it line up with the
+         visible image. The view fills the camera viewport (between top bar and
+         bottom bar); fitCenter inside reproduces letterbox/pillarbox on whatever
+         aspect ratio the source image has. Stays GONE during normal camera use. -->
+    <ImageView
+        android:id="@+id/shared_image_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="fitCenter"
+        android:background="#000000"
+        android:visibility="gone"
+        android:contentDescription="@string/scan_qr_from_image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/top_ui_overlay"
+        app:layout_constraintBottom_toTopOf="@id/bottom_bar" />
+
+    <tw.newxe.einkcamera.GridOverlayView
+        android:id="@+id/grid_overlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="@id/camera_surface_view"
+        app:layout_constraintEnd_toEndOf="@id/camera_surface_view"
+        app:layout_constraintTop_toTopOf="@id/camera_surface_view"
+        app:layout_constraintBottom_toBottomOf="@id/camera_surface_view" />
+
+    <FrameLayout
+        android:id="@+id/focus_ui_root"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipChildren="true"
+        app:layout_constraintStart_toStartOf="@id/camera_surface_view"
+        app:layout_constraintEnd_toEndOf="@id/camera_surface_view"
+        app:layout_constraintTop_toTopOf="@id/camera_surface_view"
+        app:layout_constraintBottom_toBottomOf="@id/camera_surface_view">
+
+        <FrameLayout
+            android:id="@+id/focus_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="invisible">
+
+            <View
+                android:id="@+id/focus_indicator"
+                android:layout_width="84dp"
+                android:layout_height="84dp"
+                android:background="@drawable/ic_focus_selected_frame" />
+        </FrameLayout>
+
+        <View
+            android:id="@+id/exposure_track"
+            android:layout_width="1dp"
+            android:layout_height="140dp"
+            android:background="@drawable/exposure_track"
+            android:alpha="1.0"
+            android:visibility="invisible" />
+
+        <ImageView
+            android:id="@+id/exposure_sun"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_focus_selected_sun"
+            android:contentDescription="@string/exposure_desc"
+            android:visibility="invisible" />
+    </FrameLayout>
+
+    <!-- Top UI (Thumbnail and Close) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/top_ui_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:background="#FFFFFF"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Vertical centre line of this bar. In landscape the bar becomes the
+             narrow left strip; centring the timer/toast on this zero-width line
+             (start+end both pinned to it) lets them keep their natural single-line
+             width and overflow the strip instead of being capped/truncated to it,
+             while staying fixed on the centre. Unused in portrait. -->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/top_bar_center_guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5" />
+
+        <!-- 40dp box kept centered on the original 48dp center (x=36dp, y=36dp):
+             marginStart grows from 12dp to 16dp so the half-width shrink (24->20)
+             is absorbed; vertical center is unchanged because top+bottom are pinned. -->
+        <FrameLayout
+            android:id="@+id/container_thumbnail"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/last_picture"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ThumbnailShapeOverlay" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tv_recording_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_timer_text"
+            android:textColor="#000000"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_custom_toast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/qr_result_bg"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:text="Custom Toast Message"
+            tools:visibility="visible" />
+
+        <FrameLayout
+            android:id="@+id/container_close"
+            android:layout_width="72dp"
+            android:layout_height="match_parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+            <ImageView
+                android:id="@+id/btn_close"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:padding="8dp"
+                android:src="@drawable/ic_close"
+                app:tint="@color/btn_toolbar_tint"
+                android:contentDescription="Close" />
+        </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Mode Menu Sidebar (Anchored to Action Button) -->
+    <!-- Dividers are drawn via showDividers/dividerDrawable rather than
+         child Views so long-press drag-reordering only needs to swap the
+         three FrameLayout children; the dividers automatically slot back
+         between whichever order results. -->
+    <LinearLayout
+        android:id="@+id/mode_menu_sidebar"
+        android:layout_width="64dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/mode_menu_bg"
+        android:divider="@drawable/mode_menu_divider"
+        android:showDividers="middle"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/bottom_bar"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="0dp">
+
+        <FrameLayout
+            android:id="@+id/btn_mode_photo"
+            android:layout_width="64dp"
+            android:layout_height="64dp">
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_photo_camera"
+                app:tint="#000000" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/btn_mode_video"
+            android:layout_width="64dp"
+            android:layout_height="64dp">
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_videocam"
+                app:tint="#000000" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/btn_mode_scan"
+            android:layout_width="64dp"
+            android:layout_height="64dp">
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_qr_code_scanner"
+                app:tint="#000000" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- "More features" Menu Sidebar (Anchored to the bottom-right more button) -->
+    <!-- Same look as mode_menu_sidebar (white box, black stroke, middle
+         dividers) but anchored bottom-right under btn_more and without
+         drag-reordering. About + Grid items. -->
+    <LinearLayout
+        android:id="@+id/more_menu_sidebar"
+        android:layout_width="64dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/mode_menu_bg"
+        android:divider="@drawable/mode_menu_divider"
+        android:showDividers="middle"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/bottom_bar"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="0dp">
+
+        <FrameLayout
+            android:id="@+id/btn_more_about"
+            android:layout_width="64dp"
+            android:layout_height="64dp">
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_about"
+                android:contentDescription="@string/menu_about"
+                app:tint="#000000" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/btn_more_auto_run"
+            android:layout_width="64dp"
+            android:layout_height="64dp">
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_auto_run"
+                android:contentDescription="@string/menu_auto_run"
+                app:tint="#000000" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/btn_more_grid"
+            android:layout_width="64dp"
+            android:layout_height="64dp">
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_grid"
+                android:contentDescription="@string/menu_grid"
+                app:tint="#000000" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Bottom Bar (Function Buttons) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:background="#FFFFFF"
+        android:paddingHorizontal="0dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:id="@+id/left_functions"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <FrameLayout
+                android:id="@+id/container_qr"
+                android:layout_width="64dp"
+                android:layout_height="match_parent"
+                android:foreground="@drawable/btn_toolbar_bg">
+                <ImageView
+                    android:id="@+id/btn_qr_toggle"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_photo_camera"
+                    app:tint="@color/btn_toolbar_tint"
+                    android:contentDescription="Action Button" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/container_video_quality"
+                android:layout_width="64dp"
+                android:layout_height="match_parent"
+                android:foreground="@drawable/btn_toolbar_bg"
+                android:visibility="gone">
+                <ImageView
+                    android:id="@+id/btn_video_quality"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_video_quality"
+                    app:tint="@color/btn_toolbar_tint"
+                    android:contentDescription="Video Quality" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/container_aspect_ratio"
+                android:layout_width="64dp"
+                android:layout_height="match_parent"
+                android:foreground="@drawable/btn_toolbar_bg">
+                <ImageView
+                    android:id="@+id/btn_aspect_ratio"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_aspect_ratio"
+                    app:tint="@color/btn_toolbar_tint"
+                    android:contentDescription="Aspect Ratio" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/container_stabilization"
+                android:layout_width="64dp"
+                android:layout_height="match_parent"
+                android:foreground="@drawable/btn_toolbar_bg"
+                android:visibility="gone">
+                <ImageView
+                    android:id="@+id/btn_stabilization"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_stabilization"
+                    app:tint="@color/btn_toolbar_tint"
+                    android:contentDescription="Stabilization" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/container_countdown"
+                android:layout_width="64dp"
+                android:layout_height="match_parent"
+                android:foreground="@drawable/btn_toolbar_bg">
+                <ImageView
+                    android:id="@+id/btn_countdown"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_countdown"
+                    app:tint="@color/btn_toolbar_tint"
+                    android:contentDescription="Countdown" />
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/container_more"
+            android:layout_width="64dp"
+            android:layout_height="match_parent"
+            android:foreground="@drawable/btn_toolbar_bg"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+            <ImageView
+                android:id="@+id/btn_more"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:padding="8dp"
+                android:src="@drawable/ic_more_vert"
+                app:tint="@color/btn_toolbar_tint"
+                android:contentDescription="More options" />
+        </FrameLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <FrameLayout
+        android:id="@+id/qr_overlay_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="10dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

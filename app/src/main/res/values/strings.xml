@@ -1,0 +1,56 @@
+<resources>
+    <string name="app_name">Eink Camera</string>
+    <string name="camera_permission">"Camera Permission"</string>
+    <string name="camera_permission_text">"Android requires camera permission to access USB camera.\nThis app does not access your device's built-in camera."</string>
+    <string name="ok">OK</string>
+    <string name="no_camera_title">No camera found</string>
+    <string name="no_camera_text">Please plug in or re-plug your camera, then try again.</string>
+    <string name="exposure_desc">Adjust exposure</string>
+    <string name="default_timer_text">00:00:00</string>
+    <string name="countdown_off">Off</string>
+    <string name="countdown_3s">3s</string>
+    <string name="countdown_10s">10s</string>
+    <string name="scan_qr_from_image">Scan QR code</string>
+    <string name="shortcut_photo_short">Photo</string>
+    <string name="shortcut_photo_long">Take a photo</string>
+    <string name="shortcut_video_short">Video</string>
+    <string name="shortcut_video_long">Record video</string>
+    <string name="shortcut_scan_short">Scan</string>
+    <string name="shortcut_scan_long">Scan QR code</string>
+    <string name="no_qr_found">No QR code found</string>
+    <string name="image_load_failed">Failed to load image</string>
+    <string name="cannot_open_media">Unable to open</string>
+    <string name="stabilization_status">Stabilization %s</string>
+    <string name="stabilization_on">ON</string>
+    <string name="stabilization_off">OFF</string>
+    <string name="drag_mode_enabled">Drag mode</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="qr_saved_to_album">Saved as QR code</string>
+    <string name="qr_generate_failed">Failed to generate QR code</string>
+    <string name="video_quality_hd">720p</string>
+    <string name="video_quality_fhd">1080p</string>
+    <string name="video_quality_qhd">1440p</string>
+
+    <!-- "More features" sidebar menu -->
+    <string name="menu_about">About</string>
+    <string name="menu_grid">Grid</string>
+    <string name="menu_auto_run">Auto Run</string>
+
+    <!-- About screen -->
+    <string name="about_title">About</string>
+    <string name="about_back_desc">Back</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_license_heading">License</string>
+    <string name="about_license_body">Copyright © 2026 luxontw. All rights reserved.\n\nEink Camera is proprietary software. It incorporates open-source components. See Acknowledgments for attributions and license information.</string>
+    <string name="about_acknowledgments_heading">Acknowledgments</string>
+    <string name="about_acknowledgments_body">Android USB Camera Viewer\nCopyright © 2025 Anton Yaky.\nApache License 2.0\nhttps://gitlab.com/yaky/android-usb-cam-viewer/-/blob/main/LICENSE\nEink Camera is a modified version of this project.\n\nUVCCamera\nCopyright © 2014–2017 saki t_saki@serenegiant.com.\nApache License 2.0\nhttps://github.com/alexey-pelykh/UVCCamera/blob/main/LICENSE.md\nMaintained fork by Alexey Pelykh; the upstream app was originally based on its usbCameraTest0 sample.\n\nZXing core\nCopyright © 2007 ZXing authors.\nApache License 2.0\nhttps://github.com/zxing/zxing/blob/master/LICENSE\n\nGoogle ML Kit Barcode Scanning\nGoogle APIs Terms of Service\nhttps://developers.google.com/terms\nIncludes the bundled barcode model and associated Google Play services libraries.\n\nAndroidX libraries\nCopyright © The Android Open Source Project.\nApache License 2.0\nhttps://github.com/androidx/androidx\n\nMaterial Components for Android\nCopyright © The Android Open Source Project.\nApache License 2.0\nhttps://github.com/material-components/material-components-android\n\nKotlin Standard Library and kotlinx.coroutines\nCopyright © 2010–2024 JetBrains s.r.o. and Kotlin Programming Language contributors.\nApache License 2.0\nhttps://github.com/JetBrains/kotlin\n\nFirebase SDK components, DataTransport, Error Prone annotations, Guava ListenableFuture, JSpecify, javax.inject\nCopyright © Google LLC and the respective authors.\nApache License 2.0\nhttps://opensource.google\n\nlibuvc\nCopyright © 2010–2015 Ken Tossell.\nBSD License\nhttps://github.com/libuvc/libuvc/blob/master/LICENSE.txt\n\nlibusb\nCopyright © 2001–2013 the libusb project contributors.\nGNU Lesser General Public License 2.1\nhttps://www.gnu.org/licenses/old-licenses/lgpl-2.1.html\nBundled as a separate shared library. Source of the Android port: https://github.com/alexey-pelykh/UVCCamera\n\nlibjpeg-turbo\nCopyright © 2009–2016 D. R. Commander.\nIJG, Modified BSD, and zlib licenses\nhttps://github.com/libjpeg-turbo/libjpeg-turbo/blob/main/LICENSE.md\nThis software is based in part on the work of the Independent JPEG Group.</string>
+
+    <!-- Auto Run screen -->
+    <string name="auto_run_title">Auto Run</string>
+    <string name="auto_run_back_desc">Back</string>
+    <string name="auto_run_save_qr_heading">Auto save QR code</string>
+    <string name="auto_run_save_qr_desc">When text matching keywords.</string>
+    <string name="auto_run_open_link_heading">Auto open link</string>
+    <string name="auto_run_open_link_desc">When links matching domains.</string>
+    <string name="auto_run_add_row">Add another</string>
+</resources>

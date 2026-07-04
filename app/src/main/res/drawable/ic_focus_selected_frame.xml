@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Focus reticle — Selected (frame only)
+  Scaled to match the sun's new ratio (dp/unit = 7/6).
+  Original 225 × 225 @ 1 dp/unit  →  84 × 84 @ 72 viewport.
+  All path coords and stroke width scaled by 24/75 = 0.32.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="84dp"
+    android:height="84dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+
+    <!-- 72 × 72 square, stroke 0.96, inset 0.48 -->
+    <path
+        android:pathData="M0.48,0.48 L71.52,0.48 L71.52,71.52 L0.48,71.52 Z"
+        android:strokeColor="#FFFFCC00"
+        android:strokeWidth="0.96" />
+
+    <!-- 4.8 × 0.96 tick marks at the midpoint of each edge -->
+    <!-- Left -->
+    <path
+        android:pathData="M0.96,35.52 L5.76,35.52 L5.76,36.48 L0.96,36.48 Z"
+        android:fillColor="#FFFFCC00" />
+    <!-- Right -->
+    <path
+        android:pathData="M66.24,35.52 L71.04,35.52 L71.04,36.48 L66.24,36.48 Z"
+        android:fillColor="#FFFFCC00" />
+    <!-- Top -->
+    <path
+        android:pathData="M35.52,0.96 L36.48,0.96 L36.48,5.76 L35.52,5.76 Z"
+        android:fillColor="#FFFFCC00" />
+    <!-- Bottom -->
+    <path
+        android:pathData="M35.52,66.24 L36.48,66.24 L36.48,71.04 L35.52,71.04 Z"
+        android:fillColor="#FFFFCC00" />
+</vector>

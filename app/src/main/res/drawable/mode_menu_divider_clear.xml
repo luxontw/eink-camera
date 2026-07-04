@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Transparent stand-in for mode_menu_divider, swapped in only while a mode
+     item is being drag-reordered. Same 1dp height so toggling it does NOT
+     change the LinearLayout's measured height (a height change would make the
+     whole menu jump 2dp at drag start/end); it just hides the black lines so
+     the dragged white square isn't sliced by a divider as it travels. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <size android:height="1dp" />
+    <solid android:color="#00000000" />
+</shape>

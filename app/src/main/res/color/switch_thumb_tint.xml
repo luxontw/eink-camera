@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SwitchCompat thumb (the circle): black when ON, light grey when OFF. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true" android:color="#000000" />
+    <item android:color="#FAFAFA" />
+</selector>

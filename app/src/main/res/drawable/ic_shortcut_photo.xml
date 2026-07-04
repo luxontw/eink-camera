@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pre-API-26 fallback for the launcher shortcut icon (adaptive icons and the
+     fraction-inset version live in drawable-anydpi-v26). Bakes a white backdrop
+     behind the glyph; legacy launchers still add their own backplate, so this is
+     best-effort for API 24/25. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@android:color/white" />
+    <item
+        android:drawable="@drawable/ic_photo_camera"
+        android:left="18dp"
+        android:top="18dp"
+        android:right="18dp"
+        android:bottom="18dp" />
+</layer-list>

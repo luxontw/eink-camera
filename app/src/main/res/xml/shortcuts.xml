@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press the launcher icon to pick a camera mode directly. The EXTRA_LAUNCH_MODE
+     value is read by MainActivity.handleLaunchModeExtra() and routed through setCameraMode
+     once the camera is ready. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="mode_photo"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_photo"
+        android:shortcutShortLabel="@string/shortcut_photo_short"
+        android:shortcutLongLabel="@string/shortcut_photo_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="tw.newxe.einkcamera"
+            android:targetClass="tw.newxe.einkcamera.MainActivity">
+            <extra android:name="tw.newxe.einkcamera.EXTRA_LAUNCH_MODE" android:value="PHOTO" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="mode_video"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_video"
+        android:shortcutShortLabel="@string/shortcut_video_short"
+        android:shortcutLongLabel="@string/shortcut_video_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="tw.newxe.einkcamera"
+            android:targetClass="tw.newxe.einkcamera.MainActivity">
+            <extra android:name="tw.newxe.einkcamera.EXTRA_LAUNCH_MODE" android:value="VIDEO" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="mode_scan"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_scan"
+        android:shortcutShortLabel="@string/shortcut_scan_short"
+        android:shortcutLongLabel="@string/shortcut_scan_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="tw.newxe.einkcamera"
+            android:targetClass="tw.newxe.einkcamera.MainActivity">
+            <extra android:name="tw.newxe.einkcamera.EXTRA_LAUNCH_MODE" android:value="SCAN" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+</shortcuts>

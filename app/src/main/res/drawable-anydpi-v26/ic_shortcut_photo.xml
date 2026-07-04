@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher shortcut icon. An adaptive-icon with a solid white background layer
+     so the long-press shortcut menu draws the glyph on a white circle instead of
+     the launcher's default grey/Material-You-themed backplate. No <monochrome>
+     layer, for the same reason ic_launcher has none: keep the original colours. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@android:color/white" />
+    <foreground>
+        <!-- Inset the 24dp glyph into the adaptive-icon safe zone so it isn't
+             clipped by the circular mask. Fraction insets are API 26+, which is
+             why this lives in drawable-anydpi-v26. -->
+        <inset
+            android:drawable="@drawable/ic_photo_camera"
+            android:inset="30%" />
+    </foreground>
+</adaptive-icon>

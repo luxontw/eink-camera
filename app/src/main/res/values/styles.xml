@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AlertDialog theme that renders the buttons (OK) in black instead of the
+         AppCompat default teal/green accent. The app otherwise uses the stock
+         Theme.AppCompat.Light.NoActionBar, so this is the only dialog override. -->
+    <style name="BlackButtonAlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorAccent">#000000</item>
+        <item name="android:textColorPrimary">#000000</item>
+    </style>
+
+    <!-- Applied via android:theme on the Auto Run switches. The thumb's press/
+         toggle ripple is drawn from colorControlActivated / colorControlHighlight
+         (AppCompat's teal-green by default) — thumbTint/trackTint don't cover it.
+         Recolour both to grey so the toggle animation is grey, not green. -->
+    <style name="GreySwitchOverlay" parent="">
+        <item name="colorControlActivated">#9E9E9E</item>
+        <item name="colorControlHighlight">#619E9E9E</item>
+    </style>
+
+    <!-- Wrapped around the Auto Run input rows (created in code via a
+         ContextThemeWrapper). The blinking text cursor and selection handles are
+         drawn from colorControlActivated / colorAccent — AppCompat's teal-green by
+         default — so recolour both to black for the input caret. -->
+    <style name="BlackCursorInput" parent="">
+        <item name="colorControlActivated">#000000</item>
+        <item name="colorAccent">#000000</item>
+    </style>
+
+    <!-- Small rounded corners for the last-photo thumbnail (ShapeableImageView)
+         in the top bar. ShapeableImageView clips to its shape, so a corner size
+         here is enough — no separate clip/outline-provider needed. -->
+    <style name="ThumbnailShapeOverlay" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">2dp</item>
+    </style>
+</resources>
