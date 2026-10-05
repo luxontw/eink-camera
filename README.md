@@ -7,10 +7,10 @@ Eink Camera (package `tw.newxe.einkcamera`) is a proprietary app derived from th
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/demo1.png" alt="Screenshot 1" width="23%">
-  <img src="docs/screenshots/demo2.png" alt="Screenshot 2" width="23%">
-  <img src="docs/screenshots/demo3.png" alt="Screenshot 3" width="23%">
-  <img src="docs/screenshots/demo4.png" alt="Screenshot 4" width="23%">
+  <img src="demo1.png" alt="Screenshot 1" width="23%">
+  <img src="demo2.png" alt="Screenshot 2" width="23%">
+  <img src="demo3.png" alt="Screenshot 3" width="23%">
+  <img src="demo4.png" alt="Screenshot 4" width="23%">
 </p>
 
 ## Features
