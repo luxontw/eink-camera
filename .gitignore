@@ -12,3 +12,8 @@ local.properties
 keystore.properties
 *.jks
 *.keystore
+*.p12
+*.pem
+*.p8
+google-services.json
+.claude/settings.local.json
