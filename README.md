@@ -4,6 +4,13 @@ Camera app for USB UVC (USB video class) devices — webcams, microscopes, captu
 
 Eink Camera (package `tw.newxe.einkcamera`) is a proprietary app derived from the open-source [Android USB Camera Viewer](https://gitlab.com/yaky/android-usb-cam-viewer) by Anton Yaky.
 
+## Screenshots
+
+![Eink Camera demo](demo1.png)
+![Eink Camera demo](demo2.png)
+![Eink Camera demo](demo3.png)
+![Eink Camera demo](demo4.png)
+
 ## Features
 
 - **Live preview** — automatically detects the connected UVC device and opens it at the highest supported resolution (MJPEG, with YUYV fallback). The preview fills the screen with a center-crop; no distortion.
